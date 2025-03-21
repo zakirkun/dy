@@ -76,7 +76,8 @@ type Logger struct {
 	indentString string
 	jsonFormat   bool
 	callerInfo   bool
-	colorEnabled bool // Add this field for color support
+	colorEnabled bool         // Add this field for color support
+	closer       func() error // Function to close the output writer
 }
 
 // Option is a function that modifies a Logger
@@ -561,6 +562,13 @@ func (l *Logger) DisableCallerInfo() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.callerInfo = false
+}
+
+// GetOutput returns the current output writer
+func (l *Logger) GetOutput() io.Writer {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.out
 }
 
 // Debug logs a debug message using the default logger

@@ -10,6 +10,8 @@ A simple, flexible, and efficient logging package for Go applications with color
 - Support for JSON output format
 - Caller information (file, line, function)
 - Colored output for terminal environments
+- Automatic log rotation and backup management
+- Compressed log archives
 - Thread-safe operation
 - Low overhead with level-based filtering
 - Global default logger and instance-based loggers
@@ -44,6 +46,39 @@ func main() {
     
     logger.Debug("Debug message with color")
     logger.Info("Custom logger info message")
+}
+```
+
+## Log Rotation
+
+```go
+package main
+
+import (
+    "time"
+    "github.com/zakirkun/dy"
+)
+
+func main() {
+    // Create a logger with file rotation
+    logger := dy.New(
+        dy.WithRotateWriter("logs/application.log", 
+            dy.WithMaxSize(10),             // Rotate at 10MB
+            dy.WithMaxBackups(5),           // Keep 5 old logs
+            dy.WithBackupInterval(24*time.Hour), // Rotate daily
+            dy.WithCompress(true),          // Compress old logs
+        ),
+        dy.WithLevel(dy.InfoLevel),
+    )
+    // It's important to close the logger to flush any buffered data
+    defer logger.Close()
+    
+    logger.Info("Application started")
+    
+    // Log will automatically rotate when:
+    // 1. File exceeds 10MB
+    // 2. 24 hours have passed since last rotation
+    // 3. Maximum 5 old log files will be kept
 }
 ```
 
@@ -93,6 +128,14 @@ logger.Info("This will be output in JSON format")
 - `WithJSONFormat(bool)`: Enable/disable JSON format
 - `WithCallerInfo(bool)`: Include caller file/line information
 - `WithColor(bool)`: Enable/disable colored output
+
+### Log Rotation Options
+
+- `WithRotateWriter(filename, options...)`: Use rotating file output
+  - `WithMaxSize(megabytes)`: Maximum file size before rotation
+  - `WithMaxBackups(count)`: Maximum number of old log files to retain
+  - `WithBackupInterval(duration)`: Time interval for regular rotation
+  - `WithCompress(bool)`: Enable/disable gzip compression of old logs
 
 ## Performance
 
