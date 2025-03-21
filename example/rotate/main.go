@@ -30,7 +30,7 @@ func main() {
 		logger.WithColor(true),
 		logger.WithPrefix("ROTATE-DEMO"),
 	)
-	// defer log.Close() // Important: close logger to flush buffers
+	defer log.Close() // Important: close logger to flush buffers
 
 	// Simulate logging over time
 	log.Info("Application started with log rotation enabled")

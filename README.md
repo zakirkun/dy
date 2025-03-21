@@ -1,20 +1,22 @@
 # dy
 
-A simple, flexible, and efficient logging package for Go applications with color support.
+A powerful, flexible, and efficient logging package for Go applications with advanced context handling and error correlation.
 
 ## Features
 
-- Multiple log levels: DEBUG, INFO, WARN, ERROR, FATAL
-- Customizable output format with timestamps and prefixes
-- Function call tracing with automatic indentation
-- Support for JSON output format
-- Caller information (file, line, function)
-- Colored output for terminal environments
-- Automatic log rotation and backup management
-- Compressed log archives
-- Thread-safe operation
-- Low overhead with level-based filtering
-- Global default logger and instance-based loggers
+- **Multiple log levels**: DEBUG, INFO, WARN, ERROR, FATAL
+- **Customizable output format** with timestamps and prefixes
+- **Contextual logging** with inherited context chains
+- **Advanced error correlation** for rich debugging information
+- **Function call tracing** with automatic indentation
+- **Structured logging** with JSON output format
+- **Caller information** (file, line, function)
+- **Colored output** for terminal environments
+- **Automatic log rotation** and backup management
+- **Compressed log archives**
+- **Thread-safe operation**
+- **Low overhead** with level-based filtering
+- **Global default logger** and instance-based loggers
 
 ## Installation
 
@@ -47,6 +49,102 @@ func main() {
     logger.Debug("Debug message with color")
     logger.Info("Custom logger info message")
 }
+```
+
+## Contextual Logging
+
+Create child loggers that automatically inherit context from parent loggers:
+
+```go
+// Base application logger
+baseLogger := dy.New(dy.WithLevel(dy.InfoLevel))
+
+// Create request-scoped logger with request ID
+reqLogger := baseLogger.WithContext("request_id", "abc-123")
+reqLogger.Info("Request received") // Logs with request_id=abc-123
+
+// Create user-scoped child logger that inherits request context
+userLogger := reqLogger.WithContext("user_id", "user-456") 
+userLogger.Info("User authenticated") // Logs with request_id=abc-123 AND user_id=user-456
+
+// Add multiple fields at once
+txLogger := userLogger.WithFields(map[string]interface{}{
+    "transaction_id": "tx-789",
+    "amount": 99.95,
+    "currency": "USD",
+})
+txLogger.Info("Transaction started") // Logs with ALL context values
+
+// Remove sensitive context for certain logs
+sanitizedLogger := txLogger.WithoutContext("user_id")
+sanitizedLogger.Info("Metrics collected") // Logs without the user_id
+```
+
+## Error Correlation
+
+Automatically capture detailed error information in your logs:
+
+```go
+// Basic error logging
+if err := db.Query("SELECT * FROM users"); err != nil {
+    log.WithError(err).Error("Database query failed")
+    // Automatically includes error message, type, and stack trace
+}
+
+// Add an error code
+log.WithError(err).WithErrorCode("DB_CONN_FAILED").Error("Database connection error")
+
+// Create and wrap errors with rich context
+baseErr := errors.New("network timeout")
+wrappedErr := dy.WrapError(
+    baseErr,
+    "API request failed", 
+    "API_ERROR",
+    map[string]interface{}{
+        "endpoint": "/api/data",
+        "timeout_ms": 500,
+    }
+)
+log.WithError(wrappedErr).Error("External service unavailable")
+```
+
+Custom error types can implement interfaces to provide additional context:
+
+```go
+// Define a custom error type with extra context
+type DBError struct {
+    Err     error
+    Query   string
+    Params  []interface{}
+}
+
+func (e *DBError) Error() string {
+    return fmt.Sprintf("database error: %s", e.Err)
+}
+
+func (e *DBError) Unwrap() error {
+    return e.Err
+}
+
+// Implement Fields() to add contextual information
+func (e *DBError) Fields() map[string]interface{} {
+    return map[string]interface{}{
+        "query":  e.Query,
+        "params": fmt.Sprintf("%v", e.Params),
+    }
+}
+
+// Implement Code() for error code
+func (e *DBError) Code() string {
+    return "DB_ERROR"
+}
+
+// When logged, all this additional information is captured
+log.WithError(&DBError{
+    Err:    sql.ErrNoRows,
+    Query:  "SELECT * FROM users WHERE id = ?",
+    Params: []interface{}{123},
+}).Error("User not found")
 ```
 
 ## Log Rotation
@@ -129,6 +227,14 @@ logger.Info("This will be output in JSON format")
 - `WithCallerInfo(bool)`: Include caller file/line information
 - `WithColor(bool)`: Enable/disable colored output
 
+### Context Options
+
+- `WithContext(key, value)`: Create a logger with an additional context field
+- `WithFields(map)`: Create a logger with multiple additional context fields
+- `WithoutContext(key)`: Create a logger without a specific context field
+- `WithError(err)`: Create a logger with rich error information
+- `WithErrorCode(code)`: Add or update an error code
+
 ### Log Rotation Options
 
 - `WithRotateWriter(filename, options...)`: Use rotating file output
@@ -136,6 +242,11 @@ logger.Info("This will be output in JSON format")
   - `WithMaxBackups(count)`: Maximum number of old log files to retain
   - `WithBackupInterval(duration)`: Time interval for regular rotation
   - `WithCompress(bool)`: Enable/disable gzip compression of old logs
+
+## Error Utilities
+
+- `NewError(message, code, fields)`: Create a rich error with code and context fields
+- `WrapError(err, message, code, fields)`: Wrap an existing error with additional context
 
 ## Performance
 

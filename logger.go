@@ -47,14 +47,15 @@ func (l Level) String() string {
 
 // LogEntry represents a structured log entry for JSON output
 type LogEntry struct {
-	Timestamp   string      `json:"timestamp,omitempty"`
-	Level       string      `json:"level"`
-	Message     string      `json:"message"`
-	Prefix      string      `json:"prefix,omitempty"`
-	NestLevel   int         `json:"nest_level,omitempty"`
-	Caller      *CallerInfo `json:"caller,omitempty"`
-	TraceType   string      `json:"trace_type,omitempty"` // "entry" or "exit" for trace logs
-	ElapsedTime string      `json:"elapsed_time,omitempty"`
+	Timestamp   string                 `json:"timestamp,omitempty"`
+	Level       string                 `json:"level"`
+	Message     string                 `json:"message"`
+	Prefix      string                 `json:"prefix,omitempty"`
+	NestLevel   int                    `json:"nest_level,omitempty"`
+	Caller      *CallerInfo            `json:"caller,omitempty"`
+	TraceType   string                 `json:"trace_type,omitempty"` // "entry" or "exit" for trace logs
+	ElapsedTime string                 `json:"elapsed_time,omitempty"`
+	Context     map[string]interface{} `json:"context,omitempty"` // New field for context
 }
 
 // CallerInfo contains information about the caller of the log function
@@ -78,6 +79,7 @@ type Logger struct {
 	callerInfo   bool
 	colorEnabled bool         // Add this field for color support
 	closer       func() error // Function to close the output writer
+	context      *LogContext
 }
 
 // Option is a function that modifies a Logger
@@ -151,6 +153,7 @@ func New(options ...Option) *Logger {
 		jsonFormat:   false, // Default to text format
 		callerInfo:   false, // Default to no caller info
 		colorEnabled: true,  // Default to using colors
+		context:      &LogContext{},
 	}
 
 	for _, option := range options {
@@ -183,6 +186,7 @@ func (l *Logger) log(level Level, format string, args ...interface{}) {
 	useJSON := l.jsonFormat
 	includeCaller := l.callerInfo
 	out := l.out // Keep a reference to output
+	context := l.context
 	l.mu.Unlock()
 
 	// Get caller info if enabled
@@ -213,6 +217,15 @@ func (l *Logger) log(level Level, format string, args ...interface{}) {
 
 		if includeCaller {
 			entry.Caller = caller
+		}
+
+		// Add context fields if they exist
+		if context != nil && len(context.Fields) > 0 {
+			contextMap := make(map[string]interface{})
+			for _, field := range context.Fields {
+				contextMap[field.Key] = field.Value
+			}
+			entry.Context = contextMap
 		}
 
 		// Marshal to JSON
@@ -246,7 +259,62 @@ func (l *Logger) log(level Level, format string, args ...interface{}) {
 			callerInfo = fmt.Sprintf(" [%s:%d %s] ", caller.File, caller.Line, caller.Function)
 		}
 
-		fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, l.colorizeLevel(level), callerInfo, indent, msg)
+		// Format the base log message
+		logMsg := fmt.Sprintf("%s%s[%s]%s %s%s", timestamp, prefix, l.colorizeLevel(level), callerInfo, indent, msg)
+
+		// Add context fields if they exist
+		if context != nil && len(context.Fields) > 0 {
+			var contextParts []string
+			var errorData *ErrorData
+
+			// First handle regular fields
+			for _, field := range context.Fields {
+				if field.Key == "error" {
+					// Save error data for special handling
+					if data, ok := field.Value.(ErrorData); ok {
+						errorData = &data
+						continue
+					}
+				}
+				contextParts = append(contextParts, fmt.Sprintf("%s: %v", field.Key, field.Value))
+			}
+
+			// Add context fields
+			if len(contextParts) > 0 {
+				logMsg += " {" + strings.Join(contextParts, ", ") + "}"
+			}
+
+			// Add error information in a more readable format
+			if errorData != nil {
+				logMsg += fmt.Sprintf("\n%sError: %s", indent+"  ", errorData.Message)
+				if errorData.Code != "" {
+					logMsg += fmt.Sprintf(" (code=%s)", errorData.Code)
+				}
+
+				// Add stack trace if available
+				if len(errorData.Stack) > 0 {
+					logMsg += "\n" + indent + "  Stack:"
+					for i, frame := range errorData.Stack {
+						logMsg += fmt.Sprintf("\n%s%d: %s at %s:%d", indent+"    ", i+1, frame.Function, frame.File, frame.Line)
+					}
+				}
+
+				// Add error attributes if available
+				if len(errorData.Attributes) > 0 {
+					logMsg += "\n" + indent + "  Attributes:"
+					for k, v := range errorData.Attributes {
+						logMsg += fmt.Sprintf("\n%s%s: %v", indent+"    ", k, v)
+					}
+				}
+
+				// Add cause if available
+				if errorData.Cause != nil {
+					logMsg += fmt.Sprintf("\n%sCaused by: %s", indent+"  ", errorData.Cause.Message)
+				}
+			}
+		}
+
+		fmt.Fprintln(out, logMsg)
 	}
 
 	if level == FatalLevel {
@@ -569,6 +637,24 @@ func (l *Logger) GetOutput() io.Writer {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return l.out
+}
+
+// Close closes any underlying resources associated with the logger
+// such as open files from a RotateWriter. It should be deferred when
+// using WithRotateWriter to ensure all logs are flushed properly.
+func (l *Logger) Close() error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+
+	if l.closer != nil {
+		return l.closer()
+	}
+	return nil
+}
+
+// Close closes any resources associated with the default logger
+func Close() error {
+	return DefaultLogger.Close()
 }
 
 // Debug logs a debug message using the default logger
