@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background shape -->
+  <rect x="10" y="10" width="180" height="180" rx="20" fill="#2E3440" />
+  
+  <!-- Log levels color bars -->
+  <rect x="20" y="155" width="160" height="8" rx="4" fill="#BF616A" opacity="0.9" /> <!-- Error -->
+  <rect x="20" y="140" width="160" height="8" rx="4" fill="#EBCB8B" opacity="0.9" /> <!-- Warn -->
+  <rect x="20" y="125" width="160" height="8" rx="4" fill="#A3BE8C" opacity="0.9" /> <!-- Info -->
+  <rect x="20" y="110" width="160" height="8" rx="4" fill="#88C0D0" opacity="0.9" /> <!-- Debug -->
+  
+  <!-- Terminal window effect -->
+  <rect x="30" y="30" width="140" height="70" rx="5" fill="#3B4252" />
+  <rect x="35" y="45" width="130" height="50" rx="2" fill="#2E3440" />
+  
+  <!-- Command prompt symbol -->
+  <text x="40" y="62" font-family="monospace" font-size="12" fill="#D8DEE9">$</text>
+  
+  <!-- dy letters -->
+  <text x="62" y="75" font-family="monospace" font-weight="bold" font-size="32" fill="#ECEFF4">dy</text>
+  
+  <!-- Blinking cursor -->
+  <rect x="105" y="60" width="10" height="20" fill="#88C0D0">
+    <animate attributeName="opacity" values="1;0;1" dur="1.5s" repeatCount="indefinite" />
+  </rect>
+  
+  <!-- Small log entry symbols -->
+  <circle cx="45" cy="116" r="3" fill="#88C0D0" /> <!-- Debug dot -->
+  <circle cx="45" cy="131" r="3" fill="#A3BE8C" /> <!-- Info dot -->
+  <circle cx="45" cy="146" r="3" fill="#EBCB8B" /> <!-- Warn dot -->
+  <circle cx="45" cy="161" r="3" fill="#BF616A" /> <!-- Error dot -->
+  
+  <!-- Subtle context chain visual -->
+  <path d="M170,40 C180,60 155,80 165,100" stroke="#88C0D0" fill="none" stroke-width="2" stroke-dasharray="4 2" opacity="0.7" />
+  <circle cx="170" cy="40" r="3" fill="#88C0D0" opacity="0.7" />
+  <circle cx="165" cy="100" r="3" fill="#88C0D0" opacity="0.7" />
+</svg>

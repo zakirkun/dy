@@ -1,30 +1,41 @@
-# dy
+<div align="center">
+  <img src="./assets/logo.svg" alt="dy Logo" width="180" height="180"/>
+  <h1>dy</h1>
+  <p>A powerful, flexible, and efficient logging package for Go applications with advanced context handling and error correlation.</p>
+  
+  <div>
+    <a href="https://pkg.go.dev/github.com/zakirkun/dy"><img src="https://pkg.go.dev/badge/github.com/zakirkun/dy.svg" alt="Go Reference"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"></a>
+    <!-- <a href="https://github.com/zakirkun/dy/actions"><img src="https://github.com/zakirkun/dy/workflows/tests/badge.svg" alt="Tests"></a> -->
+    <a href="https://goreportcard.com/report/github.com/zakirkun/dy"><img src="https://goreportcard.com/badge/github.com/zakirkun/dy" alt="Go Report Card"></a>
+  </div>
+</div>
 
-A powerful, flexible, and efficient logging package for Go applications with advanced context handling and error correlation.
+---
 
-## Features
+## ✨ Features
 
-- **Multiple log levels**: DEBUG, INFO, WARN, ERROR, FATAL
-- **Customizable output format** with timestamps and prefixes
-- **Contextual logging** with inherited context chains
-- **Advanced error correlation** for rich debugging information
-- **Function call tracing** with automatic indentation
-- **Structured logging** with JSON output format
-- **Caller information** (file, line, function)
-- **Colored output** for terminal environments
-- **Automatic log rotation** and backup management
-- **Compressed log archives**
-- **Thread-safe operation**
-- **Low overhead** with level-based filtering
-- **Global default logger** and instance-based loggers
+- 📊 **Multiple log levels**: DEBUG, INFO, WARN, ERROR, FATAL
+- 🎨 **Customizable output format** with timestamps and prefixes
+- 🔄 **Contextual logging** with inherited context chains
+- 🔍 **Advanced error correlation** for rich debugging information
+- 📌 **Function call tracing** with automatic indentation
+- 📝 **Structured logging** with JSON output format
+- 📂 **Caller information** (file, line, function)
+- 🌈 **Colored output** for terminal environments
+- 🔄 **Automatic log rotation** and backup management
+- 📦 **Compressed log archives**
+- 🔒 **Thread-safe operation**
+- ⚡ **Low overhead** with level-based filtering
+- 🌐 **Global default logger** and instance-based loggers
 
-## Installation
+## 📦 Installation
 
 ```bash
 go get github.com/zakirkun/dy
 ```
 
-## Basic Usage
+## 🚀 Basic Usage
 
 ```go
 package main
@@ -51,7 +62,7 @@ func main() {
 }
 ```
 
-## Contextual Logging
+## 🔄 Contextual Logging
 
 Create child loggers that automatically inherit context from parent loggers:
 
@@ -80,7 +91,7 @@ sanitizedLogger := txLogger.WithoutContext("user_id")
 sanitizedLogger.Info("Metrics collected") // Logs without the user_id
 ```
 
-## Error Correlation
+## 🔍 Error Correlation
 
 Automatically capture detailed error information in your logs:
 
@@ -147,7 +158,7 @@ log.WithError(&DBError{
 }).Error("User not found")
 ```
 
-## Log Rotation
+## 🔄 Log Rotation
 
 ```go
 package main
@@ -180,19 +191,19 @@ func main() {
 }
 ```
 
-## Colored Output
+## 🌈 Colored Output
 
 The logger supports colored output in terminal environments:
 
-- DEBUG: Blue
-- INFO: Green
-- WARN: Yellow
-- ERROR: Red
-- FATAL: Bold Red
+- 🔵 **DEBUG**: Blue
+- 🟢 **INFO**: Green
+- 🟡 **WARN**: Yellow
+- 🔴 **ERROR**: Red
+- 🟣 **FATAL**: Bold Red
 
 Colors are automatically enabled by default when writing to a terminal (os.Stdout or os.Stderr) and can be toggled with the `WithColor` option.
 
-## Function Call Tracing
+## 📌 Function Call Tracing
 
 ```go
 func processData() {
@@ -204,7 +215,7 @@ func processData() {
 }
 ```
 
-## JSON Output Format
+## 📝 JSON Output Format
 
 ```go
 logger := dy.New(
@@ -215,7 +226,7 @@ logger := dy.New(
 logger.Info("This will be output in JSON format")
 ```
 
-## Configuration Options
+## ⚙️ Configuration Options
 
 - `WithOutput(io.Writer)`: Set custom output destination
 - `WithLevel(Level)`: Set minimum log level 
@@ -227,7 +238,7 @@ logger.Info("This will be output in JSON format")
 - `WithCallerInfo(bool)`: Include caller file/line information
 - `WithColor(bool)`: Enable/disable colored output
 
-### Context Options
+### 🔄 Context Options
 
 - `WithContext(key, value)`: Create a logger with an additional context field
 - `WithFields(map)`: Create a logger with multiple additional context fields
@@ -235,7 +246,7 @@ logger.Info("This will be output in JSON format")
 - `WithError(err)`: Create a logger with rich error information
 - `WithErrorCode(code)`: Add or update an error code
 
-### Log Rotation Options
+### 📦 Log Rotation Options
 
 - `WithRotateWriter(filename, options...)`: Use rotating file output
   - `WithMaxSize(megabytes)`: Maximum file size before rotation
@@ -243,12 +254,12 @@ logger.Info("This will be output in JSON format")
   - `WithBackupInterval(duration)`: Time interval for regular rotation
   - `WithCompress(bool)`: Enable/disable gzip compression of old logs
 
-## Error Utilities
+## 🔍 Error Utilities
 
 - `NewError(message, code, fields)`: Create a rich error with code and context fields
 - `WrapError(err, message, code, fields)`: Wrap an existing error with additional context
 
-## Performance
+## ⚡ Performance
 
 The package is designed to be efficient:
 
@@ -257,6 +268,19 @@ The package is designed to be efficient:
 - Concurrency-safe through mutex locking
 - Benchmark suite included
 
-## Example
+## 📚 Examples
 
 See the `example` folder for complete examples of usage.
+
+## 🔧 Compatibility
+
+- Requires Go 1.16 or later
+- No external dependencies
+
+## 📄 License
+
+[MIT License](LICENSE)
+
+## 👥 Contributing
+
+Contributions are welcome! Feel free to submit issues or pull requests.
