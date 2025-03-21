@@ -76,6 +76,7 @@ type Logger struct {
 	indentString string
 	jsonFormat   bool
 	callerInfo   bool
+	colorEnabled bool // Add this field for color support
 }
 
 // Option is a function that modifies a Logger
@@ -148,6 +149,7 @@ func New(options ...Option) *Logger {
 		indentString: "  ",  // Default to two spaces
 		jsonFormat:   false, // Default to text format
 		callerInfo:   false, // Default to no caller info
+		colorEnabled: true,  // Default to using colors
 	}
 
 	for _, option := range options {
@@ -243,7 +245,7 @@ func (l *Logger) log(level Level, format string, args ...interface{}) {
 			callerInfo = fmt.Sprintf(" [%s:%d %s] ", caller.File, caller.Line, caller.Function)
 		}
 
-		fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, level.String(), callerInfo, indent, msg)
+		fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, l.colorizeLevel(level), callerInfo, indent, msg)
 	}
 
 	if level == FatalLevel {
@@ -419,7 +421,7 @@ func (l *Logger) TraceFunction(args ...interface{}) func() {
 				callerInfo = fmt.Sprintf(" [%s:%d %s] ", caller.File, caller.Line, caller.Function)
 			}
 
-			fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, DebugLevel.String(), callerInfo, indent, entryMsg)
+			fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, l.colorizeLevel(DebugLevel), callerInfo, indent, entryMsg)
 		}
 	}
 
@@ -513,7 +515,7 @@ func (l *Logger) TraceFunction(args ...interface{}) func() {
 					exitInfo = fmt.Sprintf(" (took %s) ", elapsedStr)
 				}
 
-				fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, DebugLevel.String(), exitInfo, indent, exitMsg)
+				fmt.Fprintf(out, "%s%s[%s]%s %s%s\n", timestamp, prefix, l.colorizeLevel(DebugLevel), exitInfo, indent, exitMsg)
 			}
 		}
 	}
