@@ -45,6 +45,25 @@ func (l Level) String() string {
 	}
 }
 
+// make dynamic level, so if someone can set level from anywhere
+// see example, https://github.com/fanchann/dy/blob/main/example/basic/main.go#L30
+func ParseLevel(l string) Level {
+	switch strings.ToUpper(l) {
+	case "DEBUG":
+		return DebugLevel
+	case "INFO":
+		return InfoLevel
+	case "WARN":
+		return WarnLevel
+	case "ERROR":
+		return ErrorLevel
+	case "FATAL":
+		return FatalLevel
+	default:
+		return InfoLevel // info level for default
+	}
+}
+
 // LogEntry represents a structured log entry for JSON output
 type LogEntry struct {
 	Timestamp   string                 `json:"timestamp,omitempty"`

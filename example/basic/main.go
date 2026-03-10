@@ -26,7 +26,8 @@ func main() {
 	logger.EnableJSONFormat()
 	logger.EnableCallerInfo()
 	logger.EnableTrace()
-	logger.SetLevel(logger.DebugLevel)
+	// logger.SetLevel(logger.DebugLevel)
+	logger.SetLevel(logger.ParseLevel("DEBUG"))
 
 	// This will now output in JSON format
 	logger.Info("Switched default logger to JSON format")
