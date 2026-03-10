@@ -256,10 +256,21 @@ func (rw *RotateWriter) cleanupOldBackups() {
 		return
 	}
 
-	// Sort the backups by modification time (oldest first)
+	// Sort the backups by modification time (oldest first).
+	// os.Stat can return nil if a file disappears between Glob and Stat
+	// (e.g. the compress goroutine renamed/removed it), so guard against
+	// nil FileInfo before calling ModTime to avoid a nil pointer panic.
 	sort.Slice(matches, func(i, j int) bool {
-		infoI, _ := os.Stat(matches[i])
-		infoJ, _ := os.Stat(matches[j])
+		infoI, errI := os.Stat(matches[i])
+		infoJ, errJ := os.Stat(matches[j])
+		// If either stat failed, treat that file as "newer" so it won't
+		// be chosen for deletion — return false when i is the bad one.
+		if errI != nil {
+			return false
+		}
+		if errJ != nil {
+			return true
+		}
 		return infoI.ModTime().Before(infoJ.ModTime())
 	})
 
